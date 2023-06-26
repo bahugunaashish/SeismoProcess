@@ -13,6 +13,8 @@ this function process the raw data of seismogram velocity data
 import numpy as np
 from scipy.signal import butter, filtfilt
 from scipy import signal
+from scipy.fft import fft
+from scipy.signal import welch
 import matplotlib.pyplot as plt
 import pandas as pd 
 import os
@@ -127,7 +129,6 @@ def _fft_Filtered(signal, sample_rate):
     return frequencies, np.abs(fft)
 
 # TODO: low pass filter not completed
- 
 def _lowPassFilter (df):
     signal = df['Amplitude']
     # Apply a low-pass filter
@@ -158,5 +159,15 @@ def _bandPassFilter(df, lowcut, highcut, filter_order):
     time = np.arange(len(signal)) / sampling_rate
     
     return filtered_signal,signal,time 
+# convert velocity to acceleartion time history
+def velocity_to_acceleration(velocity, dt):
+    #dt = 1.0  # Time step (assumed to be 1 second here)
+    acceleration = np.gradient(velocity, dt, edge_order=2)
+    return acceleration
 
 
+# convert  acceleartion to velocity and dispalcement time history
+def Conversion_Acc(acceleration, timestep):
+    velocity = np.cumsum(acceleration) * timestep  # Integrate acceleration to get velocity
+    displacement = np.cumsum(velocity) * timestep  # Integrate velocity to get displacement
+    return displacement,velocity
